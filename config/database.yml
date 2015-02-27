@@ -1,0 +1,8 @@
+development:
+  adapter: postgis
+  postgis_extension: postgis
+  database: api_dev
+  username: <%= ENV['PG_USER'] %>
+  password: <%= ENV['PG_PASS'] %>
+  host: localhost
+  schema_search_path: public
