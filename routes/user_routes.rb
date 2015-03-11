@@ -5,68 +5,88 @@ require_relative "../models/user"
 class UserRoutes < Sinatra::Base
 	register Sinatra::ActiveRecordExtension
 
-	# create a new user
-	post '/' do
-		user = User.find_by_email(params[:email])
-		if user
-			error 400, {error: "Email already in use."}.to_json
-		else
-			user = User.new
-			user.first_name = params[:first_name]
-			user.last_name = params[:last_name]
-			user.email = params[:email]
-			user.updated_at = Time.now 
-			user.visible = params[:visible]
-			user.loc = "POINT(#{params[:long]} #{params[:lat]})" 
-			user.save
-			user.to_json
+	# set the :check condition that will help in user auth
+
+	# could be re-written as: 
+	# set(:check) { |method_name| condition {send method_name}}
+	register do
+		def check(method_name)
+			condition do
+				send(method_name)
+			end
 		end
 	end
 
+	# used with the check condition
+	helpers do
+		def authorized?
+			@user = User.find_by(fb_id: params[:id])
+			# put FB auth check here
+		end
+	end
+
+	# create a new user
+	post '/' do
+		# do validation checks in the model
+		user = User.new
+		user.first_name = params[:first_name]
+		user.last_name = params[:last_name]
+		user.fb_id = params[:fb_id]
+		user.auth_token = params[:auth_token]
+		user.email = params[:email]
+		user.updated_at = Time.now 
+		user.visible = true
+		user.save
+
+		send_response(@user, 201)
+	end
+
 	# get a user by id
-	get '/:id' do
-		user = User.find_by_id(params[:id])
-		if user
-			user.to_json#(except: "auth_token")
+	get '/:id', :check => :authorized? do
+		if @user
+			send_response(@user, 200)
 		else
-			user_not_found
+			not_found
 		end
 	end
 
 	# update a user
-	put '/:id' do
-		user = User.find_by_id(params[:id])
-		if user
-			user.update_attributes(JSON.parse(params.read))
-			user.to_json
+	put '/:id' , :check => :authorized? do
+		if @user
+			@user.first_name = params[:first_name] if params[:first_name]
+			@user.last_name = params[:last_name] if params[:last_name]
+			@user.email = params[:email] if params[:email]
+			@user.visible = params[:visible]
+			@user.loc = "POINT(#{params[:long]} #{params[:lat]})"
+			@user.save
+			send_response(@user, 200)
 		else
-			user_not_found
+			not_found
 		end
 	end
+
 
 	# remove a user
-	delete '/:id' do
-		user = User.find_by_id(params[:id])
-		if user
-			user.destroy
-			user.to_json
+	delete '/:id', :check => :authorized?  do
+		if @user
+			@user.destroy
+			send_response(@user, 200)
 		else
-			user_not_found
+			not_found
 		end
 	end
 
-	# get the friends of a user
-	get '/:id/friends' do
-		user = User.find_by_id(params[:id])
-		if user
-			user.friends.to_json
-		else
-			user_not_found
-		end
+	not_found do
+		status 404
+		{error: "User not found."}.to_json
 	end
-	
+
+
 	private
-	def user_not_found
-		error 404, {error: "User not found."}.to_json
+	def send_response(user, status)
+		halt 400, user.errors.to_json if user.errors.any?
+
+		user.to_json(only: [:first_name, :last_name, :fb_id])
 	end
+			
 end

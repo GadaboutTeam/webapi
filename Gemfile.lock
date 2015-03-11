@@ -21,13 +21,20 @@ GEM
     builder (3.2.2)
     i18n (0.7.0)
     json (1.8.2)
+    mime-types (2.4.3)
     minitest (5.5.1)
+    netrc (0.10.3)
     pg (0.18.1)
     puma (2.11.0)
       rack (>= 1.1, < 2.0)
     rack (1.6.0)
     rack-protection (1.5.3)
       rack
+    rack-test (0.6.3)
+      rack (>= 1.0)
+    rest-client (1.7.3)
+      mime-types (>= 1.16, < 3.0)
+      netrc (~> 0.7)
     rgeo (0.3.20)
     rgeo-activerecord (1.2.0)
       activerecord (~> 4.0)
@@ -51,5 +58,7 @@ DEPENDENCIES
   activerecord-postgis-adapter
   pg
   puma
+  rack-test
+  rest-client
   sinatra
   sinatra-activerecord

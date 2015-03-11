@@ -6,3 +6,11 @@ development:
   password: <%= ENV['PG_PASS'] %>
   host: localhost
   schema_search_path: public
+test:
+  adapter: postgis
+  postgis_extension: postgis
+  database: api_test
+  username: <%= ENV['PG_USER'] %>
+  password: <%= ENV['PG_PASS'] %>
+  host: localhost
+  schema_search_path: public
