@@ -20,8 +20,8 @@ class UserRoutes < Sinatra::Base
 	# used with the check condition
 	helpers do
 		def authorized?
-			@user = User.find_by(fb_id: params[:id])
 			# put FB auth check here
+			@user = User.find_by(fb_id: params[:id])
 		end
 	end
 
@@ -37,8 +37,8 @@ class UserRoutes < Sinatra::Base
 		user.updated_at = Time.now 
 		user.visible = true
 		user.save
-
-		send_response(@user, 201)
+		
+		send_response(user, 201)
 	end
 
 	# get a user by id
