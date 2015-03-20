@@ -21,7 +21,7 @@ class UserRoutes < Sinatra::Base
 	helpers do
 		def authorized?
 			# put FB auth check here
-			@user = User.find_by(fb_id: params[:id])
+			@user = User.find_by(auth_id: params[:auth_id])
 		end
 	end
 
@@ -31,18 +31,18 @@ class UserRoutes < Sinatra::Base
 		user = User.new
 		user.first_name = params[:first_name]
 		user.last_name = params[:last_name]
-		user.fb_id = params[:fb_id]
+		user.auth_id = params[:auth_id]
 		user.auth_token = params[:auth_token]
-		user.email = params[:email]
 		user.updated_at = Time.now 
 		user.visible = true
+		user.loc = "POINT(#{params[:long]} #{params[:lat]})"
 		user.save
 		
 		send_response(user, 201)
 	end
 
 	# get a user by id
-	get '/:id', :check => :authorized? do
+	get '/:auth_id', :check => :authorized? do
 		if @user
 			send_response(@user, 200)
 		else
@@ -51,11 +51,10 @@ class UserRoutes < Sinatra::Base
 	end
 
 	# update a user
-	put '/:id' , :check => :authorized? do
+	put '/:auth_id' , :check => :authorized? do
 		if @user
 			@user.first_name = params[:first_name] if params[:first_name]
 			@user.last_name = params[:last_name] if params[:last_name]
-			@user.email = params[:email] if params[:email]
 			@user.visible = params[:visible]
 			@user.loc = "POINT(#{params[:long]} #{params[:lat]})"
 			@user.save
@@ -67,12 +66,21 @@ class UserRoutes < Sinatra::Base
 
 
 	# remove a user
-	delete '/:id', :check => :authorized?  do
+	delete '/:auth_id', :check => :authorized?  do
 		if @user
 			@user.destroy
 			send_response(@user, 200)
 		else
 			not_found
+		end
+	end
+
+	get '/:auth_id/friends', :check => :authorized? do
+		user = User.find_by_id(params[:auth_id])
+		if user
+			user.get_friends(500000000000).to_json
+		else
+			user_not_found
 		end
 	end
 
@@ -86,7 +94,7 @@ class UserRoutes < Sinatra::Base
 	def send_response(user, status)
 		halt 400, user.errors.to_json if user.errors.any?
 
-		user.to_json(only: [:first_name, :last_name, :fb_id])
+		user.to_json(only: [:first_name, :last_name, :auth_id])
 	end
 			
 end

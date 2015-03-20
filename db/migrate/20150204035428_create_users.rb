@@ -3,9 +3,8 @@ class CreateUsers < ActiveRecord::Migration
 		create_table :users do |t|
 			t.string :first_name
 			t.string :last_name
-			t.string :fb_id
+			t.string :auth_id
 			t.text :auth_token
-			t.string :email
 			t.boolean :visible
 			t.datetime :updated_at
 			t.point :loc, geographic: true

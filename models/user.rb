@@ -2,10 +2,9 @@ require 'sinatra/activerecord'
 
 class User < ActiveRecord::Base
 	has_many :friendships
-	has_many :friends, :through => :friendships
+	has_many :friends, -> { where(friendships: {accepted: true})}, :through => :friendships
 
-	validates :first_name, :last_name, :email, :fb_id, :auth_token, presence: true
-	validates :email, :fb_id, uniqueness: true
+	validates :first_name, :last_name, :auth_id, :auth_token, presence: true
 
 	self.rgeo_factory_generator =  RGeo::Geographic.spherical_factory(srid: 4326, geographic: true)
 	set_rgeo_factory_for_column :loc, RGeo::Geographic.spherical_factory(srid: 4326)
@@ -13,8 +12,7 @@ class User < ActiveRecord::Base
 
 	# distance away is in meters
 	def get_friends(distance_away = nil)
-		friends = self.friends.where(accepted: true)
-		friends = friends.where(["ST_Distance(loc, ?) < ?", self.loc, distance_away])
+		friends = self.friends.where(["ST_DWithin(users.loc, ST_GeomFromText(?), ?)", self.loc.to_s, distance_away])
 		return friends
 	end
 end
