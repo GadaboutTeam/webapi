@@ -25,8 +25,7 @@ ActiveRecord::Schema.define(version: 20150224094030) do
   end
 
   create_table "users", force: true do |t|
-    t.string   "first_name"
-    t.string   "last_name"
+    t.string   "username"
     t.string   "auth_id"
     t.text     "auth_token"
     t.boolean  "visible"

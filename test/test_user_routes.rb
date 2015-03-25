@@ -14,48 +14,44 @@ class UserRoutesTest < Minitest::Test
 
 	def setup	
 		User.delete_all
-		User.create(first_name: "Joe", last_name: "Test", email: "test@example.com", fb_id: "12345", auth_token: "super_secret_token")
+		User.create(username: "Joe", auth_id: "1234567890", auth_token: "super_secret_token")
 	end
 
 
-	def test_valid_user_post_and_get
-		post '/', params = {first_name: "Jacob", last_name: "Murphy", email: "murphorum@gmail.com", 
-					fb_id: "100000179320442", auth_token: "CAAFzdvnmDoQBAOMSOaTpAW13ysrm4vAUtZAvCOIq0KCcO9BWducNZAeJlyZAbIYzLZAB2G9LBMYZCZCWcuIwSZCBkVxqfTZAGYuZCZAfsimwQOxum8QUGxvogOZAQQEz6rlJrIE9cAN09VNGEzYg5n8CsixDEi3JJ7a7LbBzEj2aHGVlOH6A1Semy46Cy9mOhDu3iN40ThqQ80lJKi7xHvDA56d"}	
+	def test_valid_user_post
+		post '/', params = {username: "Jacob",
+					auth_id: "0123456789", auth_token: "CAAFzdvnmDoQBAOMSOaTpAW13ysrm4vAUtZAvCOIq0KCcO9BWducNZAeJlyZAbIYzLZAB2G9LBMYZCZCWcuIwSZCBkVxqfTZAGYuZCZAfsimwQOxum8QUGxvogOZAQQEz6rlJrIE9cAN09VNGEzYg5n8CsixDEi3JJ7a7LbBzEj2aHGVlOH6A1Semy46Cy9mOhDu3iN40ThqQ80lJKi7xHvDA56d"}	
 
 		assert last_response.ok?
-
-		get '/100000179320442'
 		attributes = JSON.parse(last_response.body)
-		assert_equal "Jacob", attributes["first_name"]
-		assert_equal "Murphy", attributes["last_name"]
-		assert_equal "100000179320442", attributes["fb_id"]
+		assert_equal "Jacob", attributes["username"]
+		# get '/0123456789'
+		# attributes = JSON.parse(last_response.body)
+		# assert_equal "Jacob", attributes["username"]
+		# assert_equal "0123456789", attributes["auth_id"]
 	end
 
 	def test_invalid_user_post
-		# check that it fails when not given a last name
-		post '/', params = {first_name: "Jacob", email: "testemail@example.com"}
+		# check that it fails when not given auth details
+		post '/', params = {username: "Jacob"}
 		assert_equal 400, last_response.status
 
-		# check that it fails when email is already in use
-		post '/', params = {first_name: "Jacob", last_name: "Murphy", email: "test@example.com",
-                                        fb_id: "100000179320442", auth_token: "super_secret_auth_token"}
+		# check that it fails when auth_id is already in use
+		post '/', params = {username: "Jacob",
+                                        auth_id: "1234567890", auth_token: "super_secret_auth_token"}
 		assert_equal 400, last_response.status
 	end
 
-	def test_user_update_and_get
-		put '/12345', params = {first_name: "Jack", email: "jcmurphy@brandeis.edu"}
+	def test_user_update
+		put '/1234567890', params = {username: "Jack"}
 		assert last_response.ok?
-                get '/12345'
 		attributes = JSON.parse(last_response.body)
-		assert_equal "Jack", attributes["first_name"]
+		assert_equal "Jack", attributes["username"]
 	end
 
 	def test_delete_existing_user
-		delete '/12345'
+		delete '/1234567890'
 		assert last_response.ok?
-		
-                get '/12345'
-		assert_equal 404, last_response.status
 	end
 
 end

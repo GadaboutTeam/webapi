@@ -20,7 +20,7 @@ class UserRoutes < Sinatra::Base
 	# used with the check condition
 	helpers do
 		def authorized?
-			# put FB auth check here
+			# put auth check here
 			@user = User.find_by(auth_id: params[:auth_id])
 		end
 	end
@@ -29,8 +29,7 @@ class UserRoutes < Sinatra::Base
 	post '/' do
 		# do validation checks in the model
 		user = User.new
-		user.first_name = params[:first_name]
-		user.last_name = params[:last_name]
+		user.username = params[:username]
 		user.auth_id = params[:auth_id]
 		user.auth_token = params[:auth_token]
 		user.updated_at = Time.now 
@@ -42,24 +41,24 @@ class UserRoutes < Sinatra::Base
 	end
 
 	# get a user by id
-	get '/:auth_id', :check => :authorized? do
-		if @user
-			send_response(@user, 200)
-		else
-			not_found
-		end
-	end
+#	get '/:auth_id', :check => :authorized? do
+#		if @user
+#			send_response(@user, 200)
+#		else
+#			not_found
+#		end
+#	end
 
 	# update a user
 	put '/:auth_id' , :check => :authorized? do
 		if @user
-			@user.first_name = params[:first_name] if params[:first_name]
-			@user.last_name = params[:last_name] if params[:last_name]
+			@user.username = params[:username] if params[:username]
 			@user.visible = params[:visible]
 			@user.loc = "POINT(#{params[:long]} #{params[:lat]})"
 			@user.save
 			send_response(@user, 200)
 		else
+puts "ER MER GERD"
 			not_found
 		end
 	end
@@ -71,6 +70,7 @@ class UserRoutes < Sinatra::Base
 			@user.destroy
 			send_response(@user, 200)
 		else
+puts "ER MER GERD 2"
 			not_found
 		end
 	end
@@ -91,10 +91,11 @@ class UserRoutes < Sinatra::Base
 
 
 	private
-	def send_response(user, status)
+	def send_response(user, stat)
 		halt 400, user.errors.to_json if user.errors.any?
 
-		user.to_json(only: [:first_name, :last_name, :auth_id])
+		status stat
+		user.to_json(only: [:username])
 	end
 			
 end

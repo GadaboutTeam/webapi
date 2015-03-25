@@ -4,7 +4,8 @@ class User < ActiveRecord::Base
 	has_many :friendships
 	has_many :friends, -> { where(friendships: {accepted: true})}, :through => :friendships
 
-	validates :first_name, :last_name, :auth_id, :auth_token, presence: true
+	validates :username, :auth_id, :auth_token, presence: true
+	validates :auth_id, uniqueness: true
 
 	self.rgeo_factory_generator =  RGeo::Geographic.spherical_factory(srid: 4326, geographic: true)
 	set_rgeo_factory_for_column :loc, RGeo::Geographic.spherical_factory(srid: 4326)
@@ -15,4 +16,5 @@ class User < ActiveRecord::Base
 		friends = self.friends.where(["ST_DWithin(users.loc, ST_GeomFromText(?), ?)", self.loc.to_s, distance_away])
 		return friends
 	end
+
 end
