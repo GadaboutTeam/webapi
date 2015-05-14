@@ -1,8 +1,13 @@
 require 'sinatra/activerecord'
+require 'grocer'
 
 class Friendship < ActiveRecord::Base
 	belongs_to :user
 	belongs_to :friend, class_name: "User", foreign_key: "friend_id"
+
+	after_save do |friendship|
+		send_notification friendship.user, friendship.friend
+	end
 	
 
 	def self.connect(user_id, friend_id)
@@ -28,4 +33,18 @@ class Friendship < ActiveRecord::Base
 		end
 	end
 
+	private
+	def send_notification(user, friend)
+		#friend.device_id
+		pusher = Grocer.pusher(
+			certificate: File.absolute_path("../api/support_files/pushcert.pem"),
+			retries:     3
+		)
+
+		notification = Grocer::Notification.new(
+				device_token: friend.device_id,
+				alert: "#{user.username} wants to add you as a friend!",
+			)
+		pusher.push(notification)
+	end
 end

@@ -19,11 +19,13 @@ GEM
       tzinfo (~> 1.1)
     arel (5.0.1.20140414130214)
     builder (3.2.2)
+    grocer (0.6.1)
     i18n (0.7.0)
     json (1.8.2)
     mime-types (2.4.3)
     minitest (5.5.1)
     netrc (0.10.3)
+    oauth (0.4.7)
     pg (0.18.1)
     puma (2.11.0)
       rack (>= 1.1, < 2.0)
@@ -56,6 +58,8 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord-postgis-adapter
+  grocer
+  oauth
   pg
   puma
   rack-test

@@ -11,11 +11,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150224094030) do
+ActiveRecord::Schema.define(version: 20150421010641) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
+
+  create_table "events", force: true do |t|
+    t.string   "title"
+    t.boolean  "active"
+    t.datetime "start_time"
+    t.datetime "end_time"
+  end
 
   create_table "friendships", force: true do |t|
     t.integer "user_id"
@@ -24,13 +31,22 @@ ActiveRecord::Schema.define(version: 20150224094030) do
     t.boolean "accepted",   default: false
   end
 
+  create_table "invitations", force: true do |t|
+    t.string  "user_id"
+    t.integer "event_id"
+    t.string  "sender_id"
+    t.integer "reply",     default: 0
+  end
+
   create_table "users", force: true do |t|
     t.string   "username"
     t.string   "auth_id"
     t.text     "auth_token"
+    t.string   "device_id"
+    t.string   "phone_number"
     t.boolean  "visible"
     t.datetime "updated_at"
-    t.spatial  "loc",        limit: {:srid=>4326, :type=>"point", :geographic=>true}
+    t.spatial  "loc",          limit: {:srid=>4326, :type=>"point", :geographic=>true}
   end
 
 end

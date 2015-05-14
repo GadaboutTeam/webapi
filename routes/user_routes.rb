@@ -21,23 +21,33 @@ class UserRoutes < Sinatra::Base
 	helpers do
 		def authorized?
 			# put auth check here
-			@user = User.find_by(auth_id: params[:auth_id])
+			if User.verify_credentials(params[:auth_token], params[:auth_id])
+				@user = User.find_by(auth_id: params[:auth_id])
+			else
+				halt 400
+			end
 		end
 	end
 
 	# create a new user
 	post '/' do
 		# do validation checks in the model
-		user = User.new
-		user.username = params[:username]
-		user.auth_id = params[:auth_id]
-		user.auth_token = params[:auth_token]
-		user.updated_at = Time.now 
-		user.visible = true
-		user.loc = "POINT(#{params[:long]} #{params[:lat]})"
-		user.save
-		
-		send_response(user, 201)
+		if User.verify_credentials(params[:auth_token], params[:auth_id])
+			user = User.new
+			user.username = params[:username]
+			user.auth_id = params[:auth_id]
+			user.auth_token = params[:auth_token]
+			user.device_id = params[:device_id]
+#			user.phone_number = params[:phone_number]
+			user.updated_at = Time.now 
+			user.visible = true
+			user.loc = "POINT(#{params[:long]} #{params[:lat]})"
+			user.save
+
+			send_response(user, 201)
+		else
+			halt 400
+		end
 	end
 
 	# get a user by id
@@ -53,13 +63,27 @@ class UserRoutes < Sinatra::Base
 	put '/:auth_id' , :check => :authorized? do
 		if @user
 			@user.username = params[:username] if params[:username]
+			@user.device_id = params[:device_id] 
+			@user.phone_number = params[:phone_number]
 			@user.visible = params[:visible]
 			@user.loc = "POINT(#{params[:long]} #{params[:lat]})"
 			@user.save
 			send_response(@user, 200)
 		else
-puts "ER MER GERD"
 			not_found
+		end
+	end
+
+	put '/login' do
+		user = User.find_by_id(params[:auth_id])
+		if user && User.verify_credentials(params[:auth_token], params[:auth_id])
+			user.auth_token = params[:auth_token]
+			user.save
+
+			send_response(user, 200)
+
+		else
+			halt 400
 		end
 	end
 
@@ -70,7 +94,6 @@ puts "ER MER GERD"
 			@user.destroy
 			send_response(@user, 200)
 		else
-puts "ER MER GERD 2"
 			not_found
 		end
 	end
@@ -92,6 +115,7 @@ puts "ER MER GERD 2"
 
 	private
 	def send_response(user, stat)
+puts "*********", user.errors.full_messages if user.errors.any?
 		halt 400, user.errors.to_json if user.errors.any?
 
 		status stat

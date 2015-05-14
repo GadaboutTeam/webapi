@@ -6,3 +6,5 @@ gem "sinatra-activerecord"
 gem 'activerecord-postgis-adapter'#, '~> 2.2.1'
 gem 'rack-test'
 gem 'rest-client'
+gem 'grocer'
+gem 'oauth'
